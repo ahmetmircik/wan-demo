@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+count=1
+instanceType="m6g.xlarge"
+imageId="ami-05d1de0f40492c232"
+region="us-east-1"
+key="jenkins-ec2-key"
+subnetId="subnet-378d2140"
+placement="hzpc2"
+outputFile="a.box"
+
+echo "aws-create $@"
+
+OPTS=`getopt -o : --long  count:,instanceType:,outputFile:,imageId:,region:,key:,subnetId:,placement: -n 'parse-options' -- "$@"` || { echo "Failed parsing options." >&2 ; exit 1; }
+eval set -- "$OPTS"
+
+while true; do
+  case "$1" in
+    --count ) count="$2"; shift 2 ;;
+    --instanceType ) instanceType="$2"; shift 2 ;;
+    --imageId ) imageId="$2"; shift 2 ;;
+    --region ) region="$2"; shift 2 ;;
+    --key ) key="$2"; shift 2  ;;
+    --subnetId ) subnetId="$2"; shift 2  ;;
+    --placement ) placement="$2"; shift 2  ;;
+    --outputFile ) outputFile="$2"; shift 2 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+if [ -f "${outputFile}" ]; then
+ current=$(cat ${outputFile} 2>/dev/null | wc -l)
+ count=$(( ${count} - ${current} ))
+fi
+
+while (( count > 0 )) ; do
+
+    ids=$(aws ec2 run-instances --count ${count} --region ${region} --image-id ${imageId} --instance-type ${instanceType} --key ${key} --subnet-id ${subnetId} --query 'Instances[*].InstanceId' --output text)
+    sleep 3
+    myIp=$(hostname --ip-address 2> /dev/null)
+    aws ec2 create-tags --resources ${ids} --tags Key=Name,Value="$(whoami)@${myIp}$(pwd)"
+
+    ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+    max=0
+    while [[ ${ips} =~ "None" || -z ${ips} ]]; do
+        sleep 5
+        ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+        if (( max++ > 15 )) ; then
+            echo ${ids}
+            echo ${ips}
+            aws ec2 terminate-instances --instance-ids ${ids}
+            exit
+        fi
+    done
+
+    killCount=0
+    for line in ${ips}; do
+        ip=$(echo "${line}" | awk -F',' '{print $1}' )
+        max=0
+        connect=255
+        while (( connect == 255 )) ; do
+            ssh -o ConnectTimeout=1 ec2-user@${ip} "pwd" &>/dev/null
+            connect=$?
+            if (( connect != 255 )) ; then
+                echo "connected ${ip}" 1>&2;
+                echo "${line}" >> ${outputFile}
+                break
+            fi
+            if (( max++ > 61 )) ; then
+                ((killCount++))
+                echo "connection ERROR ${line} terminating" 1>&2;
+                id=$(echo "${line}" | awk -F',' '{print $3}' )
+                aws ec2 terminate-instances --instance-ids ${id} &>/dev/null
+                break
+            fi
+            sleep 1
+        done
+    done
+
+    count=$killCount
+done

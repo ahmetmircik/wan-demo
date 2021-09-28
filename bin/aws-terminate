@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+boxFiles="$@"
+
+if [ $# -eq 0 ]; then
+    boxFiles="a.box"
+fi
+
+for boxFile in ${boxFiles}; do
+
+ lines=($(cat ${boxFile}))
+
+ for line in "${lines[@]}" ; do
+
+  id=$(echo ${line} | awk -F',' '{print $3}' )
+  aws ec2 terminate-instances --instance-ids ${id}
+  rc=$?
+  if ((${rc} != 0)) ; then
+    echo "ERROR TERMINATING EC2 INSTANCE ${id}"
+  fi
+
+ done
+
+ rm ${boxFile}
+
+done

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+func=$2
+
+while read line
+do
+	val1=$(echo $line | cut -d',' -f1)
+	${func} ${val1} "${@:3}"
+done < "${1:-/proc/${$}/fd/0}"

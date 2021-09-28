@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+activemq start > /dev/null
+
+ops="-Xms100M -Xmx100M"
+java -cp "${HZ_CMD_BIN}/*:${HZ_CMD_BIN}/dependency/*:${HZ_CMD_SRC}/stash/local/" ${ops} main.HzCmd $@

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+dir=${1:-'.'}
+
+echo -e " "
+
+exitCode=0
+for benchMark in $(find "${dir}" -name go | sort) ; do
+    benchDir=$(dirname $benchMark)
+    cd  ${benchDir} &> /dev/null
+
+       hz-errors &> /dev/null
+       x=$?
+       exitCode=$(($exitCode+$x))
+
+       if [[ $x != 0 ]]; then
+            echo -e "\033[31m$(pwd) Failed\033[0m"
+       fi
+
+    cd - &> /dev/null
+done
+
+exit ${exitCode}

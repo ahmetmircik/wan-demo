@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+myIp=$(hostname --ip-address 2> /dev/null)
+
+echo "terminate all with name matching $(whoami)@${myIp}$(pwd)*"
+
+ids=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=$(whoami)@${myIp}$(pwd)*" "Name=instance-state-name,Values=running"  --output text --query 'Reservations[*].Instances[*].InstanceId')
+
+aws ec2 terminate-instances --instance-ids ${ids}

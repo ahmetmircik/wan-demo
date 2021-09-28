@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+dir=${1:-.}
+match=${2:-.*}
+version=${3:-1.36}
+
+find "${dir}" -name verbosegc.log |  grep "${match}" | xargs -n1 -I% sh -c "java -jar $(find ~/.m2 -name gcviewer-${version}.jar) % %.txt %.png"
+
+
+gcPics=$(find . -name 'verbosegc.log.png' | grep '.*' | sort)
+
+while read -r gcPic; do
+
+ echo "<p>${gcPic}</p>" >> gc.html
+
+ echo "<a href=\"${gcPic}\">" >> gc.html
+ echo "<img src=\"${gcPic}\" width=\"400\" height=\"300\">" >> gc.html
+ echo "</a>" >> gc.html
+
+done <<< "${gcPics}"

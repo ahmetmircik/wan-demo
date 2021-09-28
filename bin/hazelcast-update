@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+git -C "${HAZELCAST_HOME}" remote update
+git -C "${HAZELCAST_HOME}" fetch --tags
+
+if [ -n "$1" ]; then
+  git -C "${HAZELCAST_HOME}" checkout $1
+fi
+
+git -C "${HAZELCAST_HOME}" branch
+
+pull=$(git -C "${HAZELCAST_HOME}" pull || true)
+echo ${pull}
+
+if [ "${pull}" == "Already up to date." ] || [ "${pull}" == "Already up-to-date." ] && [ -z "$2" ] ; then
+  exit 0
+fi
+
+mvn -f "${HAZELCAST_HOME}" clean install -DskipTests

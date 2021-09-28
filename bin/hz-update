@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ -n "$1" ]; then
+  git -C "${HZ_CMD_SRC}" checkout $1
+fi
+
+git -C "${HZ_CMD_SRC}" branch
+
+pull=$(git -C "${HZ_CMD_SRC}" pull || true)
+echo ${pull}
+
+if [ "${pull}" == "Already up to date." ] || [ "${pull}" == "Already up-to-date." ] && [ -z "$2" ] ; then
+  exit 0
+fi
+
+mvn -f "${HZ_CMD_SRC}" clean install dependency:copy-dependencies -DskipTests

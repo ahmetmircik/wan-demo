@@ -1,0 +1,21 @@
+#!/bin/bash
+
+WAN_DEMO_PATH="wam-demo"
+
+sudo pip install awscli
+aws configure
+printf "%s\n%s\nus-east-1\njson" "$KEY_ID" "$SECRET_KEY" | aws configure --profile wan-demo-profile
+
+
+cp ${WAN_DEMO_PATH}/stash/apache-activemq-5.15.12-bin.tar.gz .
+tar xvf ./apache-activemq-5.15.12-bin.tar.gz
+rm apache-activemq-5.15.12-bin.tar.gz
+cp ${WAN_DEMO_PATH}/stash/activemq.xml apache-activemq-5.15.12/conf
+
+echo "export ACTIVE_MQ_BIN=$(pwd)/apache-activemq-5.15.12/bin" >> ~/.bashrc
+echo 'PATH=${PATH}:${ACTIVE_MQ_BIN}' >> ~/.bashrc
+
+echo "export HZ_CMD_SRC=$(pwd)" >> ~/.bashrc
+echo "export HZ_CMD=$(pwd)/bin" >> ~/.bashrc
+echo "export HZ_CMD_BIN=$(pwd)/dependency" >> ~/.bashrc
+echo 'PATH="${HZ_CMD}:${PATH}"' >> ~/.bashrc

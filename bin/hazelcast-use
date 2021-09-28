@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+exitCode=0
+
+remote=${1:-'git@github.com:hazelcast/hazelcast.git'}
+branch=${2:-'master'}
+
+git -C "${HAZELCAST_HOME}" checkout testbranch || git -C "${HAZELCAST_HOME}" checkout -b testbranch
+
+git -C "${HAZELCAST_HOME}" remote add testremote ${remote}
+git -C "${HAZELCAST_HOME}" fetch testremote ${branch}
+git -C "${HAZELCAST_HOME}" reset --hard testremote/${branch}
+git -C "${HAZELCAST_HOME}" log -n1
+git -C "${HAZELCAST_HOME}" remote rm testremote
+
+mvn -f "${HAZELCAST_HOME}" clean install -DskipTests
+exitCode=$(($exitCode+$?))
+
+remote=${3:-'git@github.com:hazelcast/hazelcast-enterprise.git'}
+branch=${4:-'master'}
+
+git -C "${HAZELCAST_EE_HOME}" checkout testbranch || git -C "${HAZELCAST_EE_HOME}" checkout -b testbranch
+
+git -C "${HAZELCAST_EE_HOME}" remote add testremote ${remote}
+git -C "${HAZELCAST_EE_HOME}" fetch testremote ${branch}
+git -C "${HAZELCAST_EE_HOME}" reset --hard testremote/${branch}
+git -C "${HAZELCAST_EE_HOME}" log -n1
+git -C "${HAZELCAST_EE_HOME}" remote rm testremote
+
+mvn -f "${HAZELCAST_EE_HOME}" clean install -DskipTests
+exitCode=$(($exitCode+$?))
+
+exit ${exitCode}

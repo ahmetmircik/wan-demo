@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+HZ_CMD="/Users/ahmet.mircik/Workspace/idea/hzCmd"
+HZ_CMD_BENCH="/Users/ahmet.mircik/Workspace/idea/hzCmd-bench/"
+
+cp -r ${HZ_CMD}/bin/ bin
+cp -r ${HZ_CMD}/stash/ stash
+cp -r ${HZ_CMD}/target/dependency/ dependency
+cp  ${HZ_CMD}/target/hzCmd-1.0.1.jar dependency
+

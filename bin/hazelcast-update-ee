@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+git -C "${HAZELCAST_EE_HOME}" remote update
+git -C "${HAZELCAST_EE_HOME}" fetch --tags
+
+if [ -n "$1" ]; then
+  git -C "${HAZELCAST_EE_HOME}" checkout $1
+fi
+
+git -C "${HAZELCAST_EE_HOME}" branch
+
+git -C "${HAZELCAST_EE_HOME}" pull || true
+
+mvn -f "${HAZELCAST_EE_HOME}" clean install -DskipTests

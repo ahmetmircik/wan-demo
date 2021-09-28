@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+count=${1:-1}
+speck=${2:-specification.json}
+spot=${3:-demand}
+
+while (( count > 0 )) ; do
+
+    if  [ ${spot} == "spot" ] ; then
+        spotReqIds=$(aws ec2 request-spot-instances --instance-count ${count} --launch-specification file://${speck} --query 'SpotInstanceRequests[*].[SpotInstanceRequestId]' --output text | tr "\\n" " ")
+        sleep 13
+        ids="None"
+        safeCount=0
+        while [[ ${ids} =~ "None" ]]; do
+            safeCount=safeCount+1
+            if [[ ${safeCount} == 31 ]]; then
+                echo "SpotInstanceRequestId" ${spotReqIds}
+                echo "InstanceId" ${ids}
+                exit ${safeCount}
+            fi
+            sleep 10
+            ids=$(aws ec2 describe-spot-instance-requests --spot-instance-request-ids ${spotReqIds}  --query 'SpotInstanceRequests[*].[InstanceId]' --output text)
+        done
+    else
+        id=$(jq .ImageId specification.json | tr -d '"')
+        type=$(jq .InstanceType specification.json | tr -d '"')
+        key=$(jq .KeyName specification.json | tr -d '"')
+        sub=$(jq .SubnetId specification.json | tr -d '"')
+        ids=$(aws ec2 run-instances --count ${count} --image-id ${id} --instance-type ${type} --key ${key} --subnet-id ${sub} --query 'Instances[*].InstanceId' --output text)
+    fi
+    sleep 3
+    myIp=$(hostname --ip-address 2> /dev/null)
+    aws ec2 create-tags --resources ${ids} --tags Key=Name,Value="$(whoami)@${myIp}$(pwd)"
+
+    ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+    while [[ ${ips} =~ "None" ]]; do
+        sleep 3
+        ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+    done
+
+    killCount=0
+    for line in ${ips}; do
+        ip=$(echo "${line}" | awk -F',' '{print $1}' )
+        max=0
+        connect=255
+        while (( connect == 255 )) ; do
+            ssh -o ConnectTimeout=1 ec2-user@${ip} "pwd" &>/dev/null
+            connect=$?
+            if (( connect != 255 )) ; then
+                echo "connected ${ip}" 1>&2;
+                echo "${line}" | cut -d , -f -1,2
+                echo "${line}" > a.box
+                break
+            fi
+            if (( max++ > 61 )) ; then
+                ((killCount++))
+                echo "connection ERROR ${line} terminating" 1>&2;
+                id=$(echo "${line}" | awk -F',' '{print $3}' )
+                aws ec2 terminate-instances --instance-ids ${id} &>/dev/null
+                break
+            fi
+            sleep 1
+        done
+    done
+    count=$killCount
+done
+
+#get ids by name
+#ids=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=$(whoami)@$(hostname --ip-address 2> /dev/null)$(pwd)"  --output text --query 'Reservations[*].Instances[*].InstanceId')
+#print ips from ids
+#aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress]' | tr "\\t" ","

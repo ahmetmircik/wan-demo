@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+dir=${1:-'.'}
+
+exitCode=0
+
+! find "${dir}" -name hs_err_pid* | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name replay_pid* | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name core.* | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name *.hprof | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name *.oom | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name timeout_stack.txt | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name exception.txt | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name fail.txt | grep '.*'
+exitCode=$(($exitCode+$?))
+
+! find "${dir}" -name timeout | grep '.*'
+exitCode=$(($exitCode+$?))
+
+exit ${exitCode}
+
+
+

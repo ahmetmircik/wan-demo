@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+ip=$1
+cmd=$2
+user=${3:-$(whoami)}
+
+echo "ssh ${user}@${ip} '$cmd'"
+
+ssh -t -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${user}@${ip} <<EOF
+
+$cmd
+
+EOF
+
+echo ""

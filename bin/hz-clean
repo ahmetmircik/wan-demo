@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+user=${1:-$(whoami)}
+
+hz-ssh 'sudo killall -9 java; sudo killall -9 dstat; pkill -9 python; rm -r hz-root' $user
+rm -fr HzCmd.properties HzCmd.ser &> /dev/null
