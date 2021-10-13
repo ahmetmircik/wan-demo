@@ -1,3 +1,7 @@
+# summary
+- We will create a machine on EC2. 
+  From our local machine, we will connect to this new EC2 machine via ssh.
+  This EC2 machine will act as a controller to run our tests. 
 # pre-requests
 - aws credentials
 - aws machine access over ssh, each aws region needs to know your ssh keys
