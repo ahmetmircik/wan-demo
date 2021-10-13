@@ -22,9 +22,10 @@
 - have HAZELCAST_EE_KEY environment variable in your ~/.bashrc
 - clone https://github.com/ahmetmircik/wan-demo-scenarios
 - enter a test directory
-- open `go` script with `vi go` then edit lines starting with `aws-create` to use your ssh keys
-  - `aws-create --key your-ssh-key ...`
-  - for multi-region tests your ssh key must be available in each region 
+- open `go` script with `vi go` then edit lines starting with `aws-create`:
+  - `--key`: use your own ssh keys. For multi-region tests, make your ssh key available in each region.
+  - `--imageId`: make an image id(which has java installed in it) available in each region.    
+  - `--subnetId`: make a subnet id available in each region. Ideally enable all in and out traffic. 
 - run `./go 5.0`
 
 
