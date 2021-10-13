@@ -36,20 +36,20 @@ fi
 
 while (( count > 0 )) ; do
 
-    ids=$(aws ec2 run-instances --count ${count} --region ${region} --image-id ${imageId} --instance-type ${instanceType} --key ${key} --subnet-id ${subnetId} --query 'Instances[*].InstanceId' --output text)
+    ids=$(aws --region ${region} ec2 run-instances --count ${count} --image-id ${imageId} --instance-type ${instanceType} --key ${key} --subnet-id ${subnetId} --query 'Instances[*].InstanceId' --output text)
     sleep 3
     myIp=$(hostname --ip-address 2> /dev/null)
-    aws ec2 create-tags --resources ${ids} --tags Key=Name,Value="$(whoami)@${myIp}$(pwd)"
+    aws --region ${region} ec2 create-tags --resources ${ids} --tags Key=Name,Value="$(whoami)@${myIp}$(pwd)"
 
-    ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+    ips=$(aws --region ${region} ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
     max=0
     while [[ ${ips} =~ "None" || -z ${ips} ]]; do
         sleep 5
-        ips=$(aws ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
+        ips=$(aws --region ${region} ec2 describe-instances --instance-ids ${ids}  --output text --query 'Reservations[*].Instances[*].[PublicIpAddress,PrivateIpAddress,InstanceId]' | tr "\\t" ",")
         if (( max++ > 15 )) ; then
             echo ${ids}
             echo ${ips}
-            aws ec2 terminate-instances --instance-ids ${ids}
+            aws --region ${region} ec2 terminate-instances --instance-ids ${ids}
             exit
         fi
     done
@@ -71,7 +71,7 @@ while (( count > 0 )) ; do
                 ((killCount++))
                 echo "connection ERROR ${line} terminating" 1>&2;
                 id=$(echo "${line}" | awk -F',' '{print $3}' )
-                aws ec2 terminate-instances --instance-ids ${id} &>/dev/null
+                aws --region ${region} ec2 terminate-instances --instance-ids ${id} &>/dev/null
                 break
             fi
             sleep 1

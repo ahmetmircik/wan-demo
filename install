@@ -1,21 +1,52 @@
 #!/bin/bash
 
-WAN_DEMO_PATH="wam-demo"
+set -e
 
-sudo pip install awscli
-aws configure
-printf "%s\n%s\nus-east-1\njson" "$KEY_ID" "$SECRET_KEY" | aws configure --profile wan-demo-profile
+WAN_DEMO_PATH="wan-demo"
 
+#Also add zshrc
+BASH_FILE=~/.bashrc
+
+#curl "https://s3.amazonaws.com/aws-cli/awscli-bundle-1.19.101.zip" -o "awscliv1.zip"
+#unzip awscliv1.zip
+##sudo ./aws/install
+#sudo ./awscli-bundle/install
+#
+#printf "%s\n%s\nus-east-1\njson" "$AWS_ACCESS_KEY" "$AWS_SECRET_KEY" | aws configure --profile wan-demo-profile
 
 cp ${WAN_DEMO_PATH}/stash/apache-activemq-5.15.12-bin.tar.gz .
 tar xvf ./apache-activemq-5.15.12-bin.tar.gz
 rm apache-activemq-5.15.12-bin.tar.gz
 cp ${WAN_DEMO_PATH}/stash/activemq.xml apache-activemq-5.15.12/conf
 
-echo "export ACTIVE_MQ_BIN=$(pwd)/apache-activemq-5.15.12/bin" >> ~/.bashrc
-echo 'PATH=${PATH}:${ACTIVE_MQ_BIN}' >> ~/.bashrc
 
-echo "export HZ_CMD_SRC=$(pwd)" >> ~/.bashrc
-echo "export HZ_CMD=$(pwd)/bin" >> ~/.bashrc
-echo "export HZ_CMD_BIN=$(pwd)/dependency" >> ~/.bashrc
-echo 'PATH="${HZ_CMD}:${PATH}"' >> ~/.bashrc
+if [ -z "$ACTIVE_MQ_BIN" ]; then
+  echo "export ACTIVE_MQ_BIN=$(pwd)/apache-activemq-5.15.12/bin" >> ${BASH_FILE}
+  # shellcheck disable=SC2016
+  echo 'PATH=${PATH}:${ACTIVE_MQ_BIN}' >> ${BASH_FILE}
+fi
+
+cd ${WAN_DEMO_PATH}
+
+if [ -z "$HZ_CMD_SRC" ]; then
+  echo "export HZ_CMD_SRC=$(pwd)" >> ${BASH_FILE}
+  # shellcheck disable=SC2016
+  echo 'PATH="${HZ_CMD}:${PATH}"' >> ${BASH_FILE}
+fi
+
+if [ -z "$HZ_CMD" ]; then
+  echo "export HZ_CMD=$(pwd)/bin" >> ${BASH_FILE}
+  # shellcheck disable=SC2016
+  echo 'PATH="${HZ_CMD}:${PATH}"' >> ${BASH_FILE}
+fi
+
+if [ -z "$HZ_CMD_BIN" ]; then
+  echo "export HZ_CMD_BIN=$(pwd)/dependency" >> ${BASH_FILE}
+  # shellcheck disable=SC2016
+  echo 'PATH="${HZ_CMD}:${PATH}"' >> ${BASH_FILE}
+fi
+
+
+source ${BASH_FILE}
+
+

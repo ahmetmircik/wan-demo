@@ -1,0 +1,53 @@
+- install unzip
+- install java
+- install git
+- fetch https://github.com/ahmetmircik/wan-demo.git
+- fetch https://github.com/ahmetmircik/sample-hzCmd-test.git
+-source ~/.bashrc
+
+
+- default aws profile
+
+"~/.ssh/config" 8L, 163C                                                           1,1           All
+StrictHostKeyChecking=no
+UserKnownHostsFile=/dev/null
+Loglevel=error
+ServerAliveInterval 60
+IdentityFile ~/.ssh/gitHub
+IdentityFile ~/.ssh/jenkins-ec2-key
+
+ssh key permissions 600
+
+git clone https://github.com/hazelcast/hazelcast.git
+
+add hazelcast ee jar in stash folder
+add hazelcast sql jar in stash folder
+
+HAZELCAST_EE_KEY in ~/.bashrc
+
+For the testing tool work:
+Pre-requests:
+- aws machine access over ssh
+- aws credentials
+- aws cli v1 installed on your aws machine
+- git
+- java
+- port 61616 should be available for tcp
+- port 22 should be available for ssh
+Installations:
+- fetch testing tool from git
+- fetch wan tests
+Running:
+- run fetched tests
+
+
+nmap -sS -O -p80,8080 192.168.1.0/24
+sudo yum install firewalld
+sudo systemctl start firewalld
+$ sudo systemctl enable firewalld
+$ sudo systemctl status firewalld
+sudo firewall-cmd --zone=public --add-port=5000/tcp --permanent
+$ sudo firewall-cmd --reload
+
+Missing HdrHistogram-2.1.9.jar
+

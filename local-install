@@ -2,11 +2,24 @@
 
 set -e
 
+DIR="5.0"
+EE_VERSION="hazelcast-enterprise-${DIR}.jar"
+SQL_VERSION="hazelcast-sql-${DIR}.jar"
+
 HZ_CMD="/Users/ahmet.mircik/Workspace/idea/hzCmd"
 HZ_CMD_BENCH="/Users/ahmet.mircik/Workspace/idea/hzCmd-bench/"
+
+rm -rf dependency
+rm -rf stash
+rm -rf bin
 
 cp -r ${HZ_CMD}/bin/ bin
 cp -r ${HZ_CMD}/stash/ stash
 cp -r ${HZ_CMD}/target/dependency/ dependency
-cp  ${HZ_CMD}/target/hzCmd-1.0.1.jar dependency
+cp ${HZ_CMD}/target/hzCmd-1.0.1.jar dependency
+cp ${HZ_CMD_BENCH}/target/hzCmd-bench-1.0.0.jar dependency
 
+cp ~/.m2/repository/com/hazelcast/hazelcast-enterprise/${DIR}/${EE_VERSION} dependency
+cp ~/.m2/repository/com/hazelcast/hazelcast-sql/${DIR}/${SQL_VERSION} dependency
+#cp ~/.m2/repository/com/hazelcast/hazelcast-enterprise/4.2.3-SNAPSHOT/hazelcast-enterprise-4.2.3-SNAPSHOT.jar dependency
+#cp ~/.m2/repository/com/hazelcast/hazelcast-sql/4.2.3-SNAPSHOT/hazelcast-sql-4.2.3-SNAPSHOT.jar dependency
